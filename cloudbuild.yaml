@@ -2,7 +2,7 @@
 steps:
   # Dockerイメージをビルド
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', 'gcr.io/$PROJECT_ID/csv-formatter-shopify-app', '.']
+    args: ['build', '--no-cache', '-t', 'gcr.io/$PROJECT_ID/csv-formatter-shopify-app', '.']
 
   # DockerイメージをGoogle Container Registryにプッシュ
   - name: 'gcr.io/cloud-builders/docker'
