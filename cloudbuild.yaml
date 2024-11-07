@@ -1,11 +1,11 @@
 steps:
   # Step 1: Build the Docker image
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', 'REGION-docker.pkg.dev/PROJECT_ID/REPO_NAME/IMAGE_NAME:$COMMIT_SHA', '.']
+    args: ['build', '-t', '$_REGION-docker.pkg.dev/$_PROJECT_ID/$_REPO_NAME/$_IMAGE_NAME:$COMMIT_SHA', '.']
 
   # Step 2: Push the Docker image to Artifact Registry
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'REGION-docker.pkg.dev/PROJECT_ID/REPO_NAME/IMAGE_NAME:$COMMIT_SHA']
+    args: ['push', '$_REGION-docker.pkg.dev/$_PROJECT_ID/$_REPO_NAME/$_IMAGE_NAME:$COMMIT_SHA']
 
   # Step 3: Deploy the image to Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
@@ -13,21 +13,21 @@ steps:
     args:
       - 'run'
       - 'deploy'
-      - 'SERVICE_NAME'
+      - '$_SERVICE_NAME'
       - '--image'
-      - 'REGION-docker.pkg.dev/PROJECT_ID/REPO_NAME/IMAGE_NAME:$COMMIT_SHA'
+      - '$_REGION-docker.pkg.dev/$_PROJECT_ID/$_REPO_NAME/$_IMAGE_NAME:$COMMIT_SHA'
       - '--region'
-      - 'REGION'
+      - '$_REGION'
       - '--platform'
       - 'managed'
       - '--allow-unauthenticated' # Optional: Remove if you want to restrict access
 
 substitutions:
-  _REGION: 'your-region' # e.g., us-central1
-  _PROJECT_ID: 'your-gcp-project-id'
-  _REPO_NAME: 'your-artifact-repo-name'
-  _IMAGE_NAME: 'your-image-name'
-  _SERVICE_NAME: 'your-cloud-run-service-name'
+  _REGION: 'asia-northeast1' # e.g., us-central1
+  _PROJECT_ID: 'shopify-app-csv-formatter'
+  _REPO_NAME: 'shopify-app-csv-fomatter'
+  _IMAGE_NAME: 'csv-formatter-image'
+  _SERVICE_NAME: 'csv-formatter-app'
 
 images:
-  - 'REGION-docker.pkg.dev/PROJECT_ID/REPO_NAME/IMAGE_NAME:$COMMIT_SHA'
+  - '$_REGION-docker.pkg.dev/$_PROJECT_ID/$_REPO_NAME/$_IMAGE_NAME:$COMMIT_SHA'
