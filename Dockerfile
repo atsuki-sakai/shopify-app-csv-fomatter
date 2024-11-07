@@ -1,9 +1,8 @@
-
-
 FROM node:18-alpine
 
 WORKDIR /app
 
+# パッケージファイルをコピーして依存関係をインストール
 COPY package.json package-lock.json* ./
 
 RUN npm ci --omit=dev && npm cache clean --force
@@ -11,9 +10,11 @@ RUN npm ci --omit=dev && npm cache clean --force
 # Remove this line if you want to run CLI commands in your container.
 RUN npm remove @shopify/cli
 
-RUN npm run build
-
+# ソースコード全体をコピー
 COPY . .
+
+# ビルドを実行
+RUN npm run build
 
 EXPOSE 8080
 
