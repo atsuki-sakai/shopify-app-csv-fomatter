@@ -53,13 +53,23 @@ function _formatDate(date: Date) {
 }
 
 function _convertPhoneNumber(phone: string) {
+  console.log(phone);
   if (typeof phone !== "string") {
     throw new TypeError("電話番号は文字列でなければなりません。");
   }
-  phone = phone.replace(/^\+81/, "0").replace(/-/g, "").replace(/\s/g, "");
-  if (!/^\d{10,11}$/.test(phone)) {
-    throw new Error("無効な電話番号形式です。");
+
+  // // Remove spaces and hyphens
+  phone = phone.replace(/[-\s]/g, "");
+
+  //先頭が+81の場合は0に変換
+  if (phone.startsWith("+81")) {
+    phone = "0" + phone.slice(3);
   }
+
+  // 電話番号を後ろから４桁区切りでハイフン　※09012345678 -> 9012345678になってしまう問題の修正
+  // 09012345678 -> 090-1234-5678
+  phone = phone.slice(0, -4) + "-" + phone.slice(-4);
+
   return phone;
 }
 
@@ -309,7 +319,7 @@ function _yamatoCSVData(orders: any[], invoiceType: string) {
         ?.value.replace(/-/g, "/") ?? "",
       _formatShipAndCoTime(order),
       "",
-      order.shippingAddress.phone,
+      _convertPhoneNumber(order.shippingAddress.phone),
       "",
       order.shippingAddress.zip,
       _covertProvince(order.shippingAddress.province) +
