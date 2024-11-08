@@ -3,7 +3,7 @@
 client_id = "1606189b812acddeb628965c01e43be0"
 name = "csv-formatter"
 handle = "csv-formatter-2"
-application_url = "https://strict-su-describing-glow.trycloudflare.com"
+application_url = "https://advancement-warning-contributors-micro.trycloudflare.com"
 embedded = true
 
 [build]
@@ -17,9 +17,9 @@ scopes = "read_orders,write_orders,write_products"
 
 [auth]
 redirect_urls = [
-  "https://strict-su-describing-glow.trycloudflare.com/auth/callback",
-  "https://strict-su-describing-glow.trycloudflare.com/auth/shopify/callback",
-  "https://strict-su-describing-glow.trycloudflare.com/api/auth/callback"
+  "https://advancement-warning-contributors-micro.trycloudflare.com/auth/callback",
+  "https://advancement-warning-contributors-micro.trycloudflare.com/auth/shopify/callback",
+  "https://advancement-warning-contributors-micro.trycloudflare.com/api/auth/callback"
 ]
 
 [webhooks]
