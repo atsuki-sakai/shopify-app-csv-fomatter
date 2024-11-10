@@ -328,7 +328,7 @@ function _yamatoCSVData(orders: any[], invoiceType: string) {
       order.shippingAddress.address2 ?? "",
       "",
       "",
-      order.shippingAddress.name,
+      order.shippingAddress.lastName + order.shippingAddress.firstName,
       "",
       "",
       "",
@@ -457,7 +457,7 @@ function _seinoCSVData(orders: any[], invoiceType: string) {
     "",
     "",
     order.shippingAddress.zip.replace("-", ""),
-    order.shippingAddress.name,
+    order.shippingAddress.lastName + order.shippingAddress.firstName,
     "",
     _covertProvince(_formatString(order.shippingAddress.province)) +
       _formatString(order.shippingAddress.city) +
@@ -580,7 +580,8 @@ export const action = async ({ request }: ActionFunctionArgs) => {
                 }
                 shippingAddress {
                   zip
-                  name
+                  lastName
+                  firstName
                   phone
                   province
                   city
@@ -656,7 +657,7 @@ export default function Index() {
     >
       <IndexTable.Cell>
         <Text variant="bodyMd" fontWeight="bold" as="span">
-          {order.shippingAddress.name}
+          {order.shippingAddress.lastName + order.shippingAddress.firstName}
         </Text>
       </IndexTable.Cell>
       <IndexTable.Cell>{order.email}</IndexTable.Cell>
@@ -681,6 +682,8 @@ export default function Index() {
       ? _yamatoCSVData(selectedOrders, selectInvoiceType)
       : _seinoCSVData(selectedOrders, selectInvoiceType);
   };
+
+  console.log(actionOrders);
 
   return (
     <Page>
@@ -738,14 +741,14 @@ export default function Index() {
                     }
                     onSelectionChange={handleSelectionChange}
                     headings={[
-                      { title: "Name" },
-                      { title: "Email" },
-                      { title: "Zip" },
-                      { title: "Phone" },
-                      { title: "Province" },
-                      { title: "City" },
-                      { title: "Address1" },
-                      { title: "Address2" },
+                      { title: "お名前" },
+                      { title: "メールアドレス" },
+                      { title: "郵便番号" },
+                      { title: "電話番号" },
+                      { title: "都道府県" },
+                      { title: "市区町村" },
+                      { title: "住所1" },
+                      { title: "詳細住所" },
                     ]}
                   >
                     {rowMarkup}
