@@ -698,7 +698,7 @@ export default function Index() {
               <div>
                 <BlockStack gap="200">
                   <Text as="span" alignment="start" tone="subdued">
-                    取得したい���文のタグを入力してください。
+                    取得したい注文のタグを入力してください。
                   </Text>
                   <Button submit variant="primary">
                     検索する
