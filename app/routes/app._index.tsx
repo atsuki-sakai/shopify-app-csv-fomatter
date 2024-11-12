@@ -413,8 +413,14 @@ function _yamatoCSVData(orders: any[], invoiceType: string) {
   ];
   const csvContent = csvData.map((e) => e.join(",")).join("\n");
 
-  // Create a Blob from the CSV string
-  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  // Add BOM to the CSV content
+  const BOM = "\uFEFF";
+  const csvContentWithBOM = BOM + csvContent;
+
+  // Create a Blob from the CSV string with UTF-8 encoding
+  const blob = new Blob([csvContentWithBOM], {
+    type: "text/csv;charset=utf-8;",
+  });
 
   // Create a link to download the Blob
   const url = URL.createObjectURL(blob);
@@ -498,9 +504,17 @@ function _seinoCSVData(orders: any[], invoiceType: string) {
   // Write the workbook to a binary string
   const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
 
-  // Create a Blob from the binary string
-  const blob = new Blob([excelBuffer], {
-    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  // Add BOM to the Excel buffer
+  const BOM = new Uint8Array([0xef, 0xbb, 0xbf]);
+  const excelBufferWithBOM = new Uint8Array(
+    BOM.byteLength + excelBuffer.byteLength,
+  );
+  excelBufferWithBOM.set(BOM, 0);
+  excelBufferWithBOM.set(new Uint8Array(excelBuffer), BOM.byteLength);
+
+  // Create a Blob from the binary string with UTF-8 encoding
+  const blob = new Blob([excelBufferWithBOM], {
+    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=utf-8;",
   });
 
   // Create a link element
@@ -515,26 +529,6 @@ function _seinoCSVData(orders: any[], invoiceType: string) {
   // Clean up
   document.body.removeChild(link);
   URL.revokeObjectURL(link.href);
-
-  // // Convert array of arrays to CSV string
-  // const csvString = csvData.map((row) => row.join(",")).join("\n");
-
-  // // Create a Blob from the CSV string
-  // const blob = new Blob([csvString], { type: "text/csv" });
-
-  // // Create a link to download the Blob
-  // const url = URL.createObjectURL(blob);
-  // const link = document.createElement("a");
-  // link.href = url;
-  // link.setAttribute("download", "seino_orders.csv");
-
-  // // Append to the document and trigger the download
-  // document.body.appendChild(link);
-  // link.click();
-
-  // // Clean up
-  // document.body.removeChild(link);
-  // URL.revokeObjectURL(url);
 }
 
 // Const
@@ -704,7 +698,7 @@ export default function Index() {
               <div>
                 <BlockStack gap="200">
                   <Text as="span" alignment="start" tone="subdued">
-                    取得したい注文のタグを入力してください。
+                    取得したい���文のタグを入力してください。
                   </Text>
                   <Button submit variant="primary">
                     検索する
