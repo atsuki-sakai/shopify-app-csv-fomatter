@@ -17,7 +17,6 @@ import {
   InlineStack,
 } from "@shopify/polaris";
 
-import { TitleBar } from "@shopify/app-bridge-react";
 import { authenticate } from "../shopify.server";
 
 import * as XLSX from "xlsx";
@@ -45,12 +44,6 @@ interface ActionData {
 }
 
 // - Function
-function _formatDate(date: Date) {
-  let year = date.getFullYear();
-  let month = (date.getMonth() + 1).toString().padStart(2, "0");
-  let day = date.getDate().toString().padStart(2, "0");
-  return `${year}${month}${day}`;
-}
 
 function _convertPhoneNumber(phone: string) {
   console.log(phone);
@@ -642,31 +635,37 @@ export default function Index() {
   const { selectedResources, allResourcesSelected, handleSelectionChange } =
     useIndexResourceState(actionOrders);
 
-  const rowMarkup = actionOrders.map((order: any, index: number) => (
-    <IndexTable.Row
-      id={order.id}
-      key={order.id + "-" + index}
-      selected={selectedResources.includes(order.id)}
-      position={index}
-    >
-      <IndexTable.Cell>
-        <Text variant="bodyMd" fontWeight="bold" as="span">
-          {order.shippingAddress.lastName + order.shippingAddress.firstName}
-        </Text>
-      </IndexTable.Cell>
-      <IndexTable.Cell>{order.email}</IndexTable.Cell>
-      <IndexTable.Cell>{order.shippingAddress.zip}</IndexTable.Cell>
-      <IndexTable.Cell>
-        <Text as="span" alignment="end" numeric>
-          {order.shippingAddress.phone}
-        </Text>
-      </IndexTable.Cell>
-      <IndexTable.Cell>{order.shippingAddress.province}</IndexTable.Cell>
-      <IndexTable.Cell>{order.shippingAddress.city}</IndexTable.Cell>
-      <IndexTable.Cell>{order.shippingAddress.address1}</IndexTable.Cell>
-      <IndexTable.Cell>{order.shippingAddress.address2}</IndexTable.Cell>
-    </IndexTable.Row>
-  ));
+  const rowMarkup = actionOrders.map((order: any, index: number) => {
+    const address =
+      order.shippingAddress && order.shippingAddress.length > 0
+        ? order.shippingAddress
+        : {};
+    return (
+      <IndexTable.Row
+        id={order.id}
+        key={order.id + "-" + index}
+        selected={selectedResources.includes(order.id)}
+        position={index}
+      >
+        <IndexTable.Cell>
+          <Text variant="bodyMd" fontWeight="bold" as="span">
+            {order.shippingAddress.lastName + order.shippingAddress.firstName}
+          </Text>
+        </IndexTable.Cell>
+        <IndexTable.Cell>{order.email}</IndexTable.Cell>
+        <IndexTable.Cell>{address.zip}</IndexTable.Cell>
+        <IndexTable.Cell>
+          <Text as="span" alignment="end" numeric>
+            {address.phone}
+          </Text>
+        </IndexTable.Cell>
+        <IndexTable.Cell>{address.province}</IndexTable.Cell>
+        <IndexTable.Cell>{address.city}</IndexTable.Cell>
+        <IndexTable.Cell>{address.address1}</IndexTable.Cell>
+        <IndexTable.Cell>{address.address2}</IndexTable.Cell>
+      </IndexTable.Row>
+    );
+  });
 
   const handleExportCSV = () => {
     const selectedOrders = actionOrders.filter((order: any) =>

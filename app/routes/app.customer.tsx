@@ -314,31 +314,39 @@ export default function Index() {
   const { selectedResources, allResourcesSelected, handleSelectionChange } =
     useIndexResourceState(actionCustomers);
 
-  const rowMarkup = actionCustomers.map((customer: Customer, index: number) => (
-    <IndexTable.Row
-      id={customer.id}
-      key={customer.id + "-" + index}
-      selected={selectedResources.includes(customer.id)}
-      position={index}
-    >
-      <IndexTable.Cell>
-        <Text variant="bodyMd" fontWeight="bold" as="span">
-          {customer.lastName + customer.firstName}
-        </Text>
-      </IndexTable.Cell>
-      <IndexTable.Cell>{customer.email}</IndexTable.Cell>
-      <IndexTable.Cell>{customer.addresses[0].zip}</IndexTable.Cell>
-      <IndexTable.Cell>
-        <Text as="span" alignment="end" numeric>
-          {customer.addresses[0].phone}
-        </Text>
-      </IndexTable.Cell>
-      <IndexTable.Cell>{customer.addresses[0].province}</IndexTable.Cell>
-      <IndexTable.Cell>{customer.addresses[0].city}</IndexTable.Cell>
-      <IndexTable.Cell>{customer.addresses[0].address1}</IndexTable.Cell>
-      <IndexTable.Cell>{customer.addresses[0].address2}</IndexTable.Cell>
-    </IndexTable.Row>
-  ));
+  const rowMarkup = actionCustomers.map((customer: Customer, index: number) => {
+    const address =
+      customer.addresses && customer.addresses.length > 0
+        ? customer.addresses[0]
+        : {};
+    return (
+      <IndexTable.Row
+        id={customer.id}
+        key={customer.id + "-" + index}
+        selected={selectedResources.includes(customer.id)}
+        position={index}
+      >
+        <IndexTable.Cell>
+          <Text variant="bodyMd" fontWeight="bold" as="span">
+            {customer.lastName + customer.firstName}
+          </Text>
+        </IndexTable.Cell>
+        <IndexTable.Cell>{customer.email}</IndexTable.Cell>
+        <IndexTable.Cell>{address.zip ?? ""}</IndexTable.Cell>
+        <IndexTable.Cell>
+          <Text as="span" alignment="end" numeric>
+            {address.phone ?? ""}
+          </Text>
+        </IndexTable.Cell>
+        <IndexTable.Cell>
+          {_covertProvince(address.province ?? "")}
+        </IndexTable.Cell>
+        <IndexTable.Cell>{address.city ?? ""}</IndexTable.Cell>
+        <IndexTable.Cell>{address.address1 ?? ""}</IndexTable.Cell>
+        <IndexTable.Cell>{address.address2 ?? ""}</IndexTable.Cell>
+      </IndexTable.Row>
+    );
+  });
 
   const handleExportCSV = () => {
     const selectedCustomers = actionCustomers.filter((customer: Customer) =>
