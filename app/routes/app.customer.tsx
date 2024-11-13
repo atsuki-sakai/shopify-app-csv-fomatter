@@ -181,7 +181,7 @@ function _exportCustomerCSVData(customers: Customer[]) {
     ],
     ...customers.map((customer: Customer) => [
       customer.id.split("/Customer/")[1],
-      customer.tags ?? "",
+      (customer.tags || "").split(",").join(" "),
       customer.lastName + customer.firstName,
       customer.email,
       _convertPhoneNumber(customer.addresses[0].phone ?? ""),
