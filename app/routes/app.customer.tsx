@@ -14,17 +14,16 @@ import {
   useIndexResourceState,
 } from "@shopify/polaris";
 
-import { TitleBar } from "@shopify/app-bridge-react";
 import { authenticate } from "../shopify.server";
 
 // - Type
 interface ShippingAddress {
-  zip: string;
-  name: string;
-  phone: string;
-  province: string;
-  city: string;
-  address1: string;
+  zip?: string;
+  name?: string;
+  phone?: string;
+  province?: string;
+  city?: string;
+  address1?: string;
   address2?: string;
 }
 
@@ -33,7 +32,7 @@ interface Customer {
   email: string;
   lastName: string;
   firstName: string;
-  tags: string;
+  tags?: string;
   addresses: ShippingAddress[];
 }
 
@@ -182,15 +181,15 @@ function _exportCustomerCSVData(customers: Customer[]) {
     ],
     ...customers.map((customer: Customer) => [
       customer.id.split("/Customer/")[1],
-      customer.tags,
+      customer.tags ?? "",
       customer.lastName + customer.firstName,
       customer.email,
-      _convertPhoneNumber(customer.addresses[0].phone),
-      customer.addresses[0].zip,
-      _covertProvince(customer.addresses[0].province),
-      customer.addresses[0].city,
-      customer.addresses[0].address1,
-      customer.addresses[0].address2,
+      _convertPhoneNumber(customer.addresses[0].phone ?? ""),
+      customer.addresses[0].zip ?? "",
+      _covertProvince(customer.addresses[0].province ?? ""),
+      customer.addresses[0].city ?? "",
+      customer.addresses[0].address1 ?? "",
+      customer.addresses[0].address2 ?? "",
     ]),
   ];
   const csvContent = csvData.map((e) => e.join(",")).join("\n");
