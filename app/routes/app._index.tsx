@@ -681,7 +681,6 @@ export default function Index() {
 
   return (
     <Page>
-      <TitleBar title="CSV Formatter">CSV Formatter</TitleBar>
       <Layout.Section>
         <BlockStack gap="500">
           <Form method="post">
