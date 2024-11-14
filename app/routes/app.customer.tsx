@@ -166,6 +166,7 @@ function _covertProvince(province: string) {
 }
 
 function _exportCustomerCSVData(customers: Customer[]) {
+  console.log(customers);
   const csvData = [
     [
       "ID",
@@ -181,7 +182,14 @@ function _exportCustomerCSVData(customers: Customer[]) {
     ],
     ...customers.map((customer: Customer) => [
       customer.id.split("/Customer/")[1],
-      (customer.tags || "").split(",").join(" "),
+      customer.tags
+        ? Array.isArray(customer.tags)
+          ? customer.tags.join(" ")
+          : customer.tags
+              .split(",")
+              .map((tag) => tag.trim())
+              .join(",")
+        : "",
       customer.lastName + customer.firstName,
       customer.email,
       _convertPhoneNumber(customer.addresses[0].phone ?? ""),
@@ -192,6 +200,7 @@ function _exportCustomerCSVData(customers: Customer[]) {
       customer.addresses[0].address2 ?? "",
     ]),
   ];
+  console.log(csvData);
   const csvContent = csvData.map((e) => e.join(",")).join("\n");
 
   // Add BOM to the CSV content
@@ -352,10 +361,9 @@ export default function Index() {
     const selectedCustomers = actionCustomers.filter((customer: Customer) =>
       selectedResources.includes(customer.id),
     );
+    console.log(selectedCustomers);
     _exportCustomerCSVData(selectedCustomers);
   };
-
-  console.log(actionCustomers);
 
   return (
     <Page>
