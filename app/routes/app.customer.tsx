@@ -192,12 +192,16 @@ function _exportCustomerCSVData(customers: Customer[]) {
         : "",
       customer.lastName + customer.firstName,
       customer.email,
-      _convertPhoneNumber(customer.addresses[0].phone ?? ""),
-      customer.addresses[0].zip ?? "",
-      _covertProvince(customer.addresses[0].province ?? ""),
-      customer.addresses[0].city ?? "",
-      customer.addresses[0].address1 ?? "",
-      customer.addresses[0].address2 ?? "",
+      customer.addresses?.[0]?.phone
+        ? _convertPhoneNumber(customer.addresses[0].phone)
+        : "",
+      customer.addresses?.[0]?.zip ?? "",
+      customer.addresses?.[0]?.province
+        ? _covertProvince(customer.addresses[0].province)
+        : "",
+      customer.addresses?.[0]?.city ?? "",
+      customer.addresses?.[0]?.address1 ?? "",
+      customer.addresses?.[0]?.address2 ?? "",
     ]),
   ];
   console.log(csvData);
