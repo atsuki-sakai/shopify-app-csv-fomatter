@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import type { ActionFunctionArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
-import { useActionData, Form } from "@remix-run/react";
+import { useActionData, Form, useNavigation } from "@remix-run/react";
 import {
   Page,
   Layout,
@@ -15,6 +15,9 @@ import {
   useIndexResourceState,
   Select,
   InlineStack,
+  Loading,
+  Banner,
+  Frame,
 } from "@shopify/polaris";
 
 import { authenticate } from "../shopify.server";
@@ -560,6 +563,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
               node {
                 id
                 email
+                tags
                 note
                 customAttributes{
                   key
@@ -609,15 +613,17 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
 export default function Index() {
   const actionData = useActionData<ActionData>();
+  const navigation = useNavigation();
   const actionOrders = actionData?.orders || [];
   const [selectedTag, setSelectedTag] = useState("");
   const [selectedTagType, setSelectedTagType] = useState<"YAMATO" | "SEINO">(
     "YAMATO",
   );
-
   const [selectInvoiceType, setSelectInvoiceType] = useState("0");
-
   const [error, setError] = useState<string | null>(null);
+  const [isExporting, setIsExporting] = useState(false);
+
+  const isLoading = navigation.state === "submitting";
 
   useEffect(() => {
     if (actionData?.error) {
@@ -632,14 +638,13 @@ export default function Index() {
     plural: "orders",
   };
 
+  console.log(actionOrders);
+
   const { selectedResources, allResourcesSelected, handleSelectionChange } =
     useIndexResourceState(actionOrders);
 
   const rowMarkup = actionOrders.map((order: any, index: number) => {
-    const address =
-      order.shippingAddress && order.shippingAddress.length > 0
-        ? order.shippingAddress
-        : {};
+    const address = order.shippingAddress ?? {};
     return (
       <IndexTable.Row
         id={order.id}
@@ -653,6 +658,8 @@ export default function Index() {
           </Text>
         </IndexTable.Cell>
         <IndexTable.Cell>{order.email}</IndexTable.Cell>
+        <IndexTable.Cell>{order.tags?.join(",") ?? ""}</IndexTable.Cell>
+        <IndexTable.Cell>{order.note ?? ""}</IndexTable.Cell>
         <IndexTable.Cell>{address.zip}</IndexTable.Cell>
         <IndexTable.Cell>
           <Text as="span" alignment="end" numeric>
@@ -667,129 +674,157 @@ export default function Index() {
     );
   });
 
-  const handleExportCSV = () => {
-    const selectedOrders = actionOrders.filter((order: any) =>
-      selectedResources.includes(order.id),
-    );
-    selectedTagType === "YAMATO"
-      ? _yamatoCSVData(selectedOrders, selectInvoiceType)
-      : _seinoCSVData(selectedOrders, selectInvoiceType);
+  const handleExportCSV = async () => {
+    try {
+      setIsExporting(true);
+      const selectedOrders = actionOrders.filter((order: any) =>
+        selectedResources.includes(order.id),
+      );
+      selectedTagType === "YAMATO"
+        ? await _yamatoCSVData(selectedOrders, selectInvoiceType)
+        : await _seinoCSVData(selectedOrders, selectInvoiceType);
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   console.log(actionOrders);
 
   return (
-    <Page>
-      <Layout.Section>
-        <BlockStack gap="500">
-          <Form method="post">
-            <BlockStack gap="200">
-              <Card>
-                <TextField
-                  autoComplete="off"
-                  label="注文タグ"
-                  name="tag"
-                  value={selectedTag}
-                  onChange={setSelectedTag}
-                />
-              </Card>
-              <div>
-                <BlockStack gap="200">
-                  <Text as="span" alignment="start" tone="subdued">
-                    取得したい注文のタグを入力してください。
-                  </Text>
-                  <Button submit variant="primary">
-                    検索する
-                  </Button>
-                </BlockStack>
-              </div>
-            </BlockStack>
-          </Form>
-          {error && (
-            <Card>
-              <Text
-                variant="bodyMd"
-                fontWeight="bold"
-                as="span"
-                alignment="center"
-                tone="critical"
-              >
-                {error}
-              </Text>
-            </Card>
-          )}
+    <Frame>
+      {(isLoading || isExporting) && <Loading />}
+      <Page>
+        <Text as="h1" variant="headingLg">
+          注文データCSV、Excel変換
+        </Text>
+        <Layout.Section>
           <BlockStack gap="500">
-            <Card>
+            <Form method="post">
               <BlockStack gap="200">
-                <Text as="h2" tone="base">
-                  一致した注文
-                </Text>
                 <Card>
-                  <IndexTable
-                    resourceName={resourceName}
-                    itemCount={actionOrders.length}
-                    selectedItemsCount={
-                      allResourcesSelected ? "All" : selectedResources.length
-                    }
-                    onSelectionChange={handleSelectionChange}
-                    headings={[
-                      { title: "お名前" },
-                      { title: "メールアドレス" },
-                      { title: "郵便番号" },
-                      { title: "電話番号" },
-                      { title: "都道府県" },
-                      { title: "市区町村" },
-                      { title: "住所1" },
-                      { title: "詳細住所" },
-                    ]}
-                  >
-                    {rowMarkup}
-                  </IndexTable>
+                  <TextField
+                    autoComplete="off"
+                    label="注文タグ"
+                    name="tag"
+                    value={selectedTag}
+                    onChange={setSelectedTag}
+                    disabled={isLoading}
+                  />
                 </Card>
+                <div>
+                  <BlockStack gap="200">
+                    <Text as="span" alignment="start" tone="subdued">
+                      取得したい注文のタグを入力してください。
+                    </Text>
+                    <Button
+                      submit
+                      variant="primary"
+                      loading={isLoading}
+                      disabled={isLoading || !selectedTag}
+                    >
+                      {isLoading ? "検索中..." : "検索する"}
+                    </Button>
+                  </BlockStack>
+                </div>
               </BlockStack>
-            </Card>
+            </Form>
+
+            {error && (
+              <Banner onDismiss={() => setError(null)}>
+                <p>{error}</p>
+              </Banner>
+            )}
+
+            {actionOrders.length > 0 && (
+              <BlockStack gap="500">
+                <Card>
+                  <BlockStack gap="200">
+                    <Text as="h2" tone="base">
+                      一致した注文 ({actionOrders.length}件)
+                    </Text>
+                    <Card>
+                      <IndexTable
+                        resourceName={resourceName}
+                        itemCount={actionOrders.length}
+                        selectedItemsCount={
+                          allResourcesSelected
+                            ? "All"
+                            : selectedResources.length
+                        }
+                        onSelectionChange={handleSelectionChange}
+                        headings={[
+                          { title: "お名前" },
+                          { title: "メールアドレス" },
+                          { title: "注文タグ" },
+                          { title: "メモ" },
+                          { title: "郵便番号" },
+                          { title: "電話番号" },
+                          { title: "都道府県" },
+                          { title: "市区町村" },
+                          { title: "住所1" },
+                          { title: "詳細住所" },
+                        ]}
+                      >
+                        {rowMarkup}
+                      </IndexTable>
+                    </Card>
+                  </BlockStack>
+                </Card>
+
+                <InlineStack>
+                  <RadioButton
+                    label="ヤマト運輸"
+                    helpText="ヤマト運輸の形式でcsvを出力します。"
+                    checked={selectedTagType === "YAMATO"}
+                    id="yamato"
+                    name="tagType"
+                    onChange={(value) =>
+                      setSelectedTagType(value ? "YAMATO" : "SEINO")
+                    }
+                    disabled={isExporting}
+                  />
+                  <RadioButton
+                    label="西濃運輸"
+                    helpText="西濃運輸の形式でExcelを出力します。"
+                    id="seino"
+                    name="tagType"
+                    checked={selectedTagType === "SEINO"}
+                    onChange={(value) =>
+                      setSelectedTagType(value ? "SEINO" : "YAMATO")
+                    }
+                    disabled={isExporting}
+                  />
+                </InlineStack>
+
+                <BlockStack gap="200">
+                  <Select
+                    label="送り状の種類(ヤマト運輸のみ)"
+                    options={invoiceTypeOptions}
+                    onChange={(value) => setSelectInvoiceType(value)}
+                    value={selectInvoiceType}
+                    disabled={isExporting || selectedTagType !== "YAMATO"}
+                  />
+                  <Text as="span" alignment="start" tone="caution">
+                    送り状の種類指定はヤマト運輸のみ対応。
+                  </Text>
+                </BlockStack>
+
+                <Button
+                  onClick={handleExportCSV}
+                  variant="primary"
+                  loading={isExporting}
+                  disabled={isExporting || selectedResources.length === 0}
+                >
+                  {isExporting ? "出力中..." : "CSVまたはExcelを出力する"}
+                </Button>
+                <Text as="span" alignment="start" tone="subdued">
+                  ボタンを押すとCSVまたはExcelがダウンロードされます。
+                </Text>
+              </BlockStack>
+            )}
           </BlockStack>
-          <InlineStack>
-            <RadioButton
-              label="ヤマト運輸"
-              helpText="ヤマト運輸の形式でcsvを出力します。"
-              checked={selectedTagType === "YAMATO"}
-              id="yamato"
-              name="tagType"
-              onChange={(value) =>
-                setSelectedTagType(value ? "YAMATO" : "SEINO")
-              }
-            />
-            <RadioButton
-              label="西濃運輸"
-              helpText="西濃運輸の形式でcsvを出力します。"
-              id="seino"
-              name="tagType"
-              checked={selectedTagType === "SEINO"}
-              onChange={(value) =>
-                setSelectedTagType(value ? "SEINO" : "YAMATO")
-              }
-            />
-          </InlineStack>
-          <BlockStack gap="200">
-            <Select
-              label="送り状の種類(ヤマト運輸のみ)"
-              options={invoiceTypeOptions}
-              onChange={(value) => setSelectInvoiceType(value)}
-              value={selectInvoiceType}
-            />
-            <Text as="span" alignment="start" tone="caution">
-              送り状の種類指定はヤマト運輸のみ対応。
-            </Text>
-          </BlockStack>
-          <Button onClick={handleExportCSV} variant="primary">
-            CSVを出力する
-          </Button>
-          <Text as="span" alignment="start" tone="subdued">
-            ボタンを押すとCSVがダウンロードされます。
-          </Text>
-        </BlockStack>
-      </Layout.Section>
-    </Page>
+        </Layout.Section>
+      </Page>
+    </Frame>
   );
 }

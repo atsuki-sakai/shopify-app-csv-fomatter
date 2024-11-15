@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import type { ActionFunctionArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
-import { useActionData, Form } from "@remix-run/react";
+import { useActionData, Form, useNavigation } from "@remix-run/react";
 import {
   Page,
   Layout,
@@ -12,6 +12,8 @@ import {
   TextField,
   IndexTable,
   useIndexResourceState,
+  Spinner,
+  Banner,
 } from "@shopify/polaris";
 
 import { authenticate } from "../shopify.server";
@@ -39,6 +41,7 @@ interface Customer {
 interface ActionData {
   customers?: Customer[];
   error?: string;
+  message?: string;
 }
 
 // - Function
@@ -220,7 +223,7 @@ function _exportCustomerCSVData(customers: Customer[]) {
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.setAttribute("download", "yamato_orders.csv");
+  link.setAttribute("download", "customers-data.csv");
 
   // Append to the document and trigger the download
   document.body.appendChild(link);
@@ -292,6 +295,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       customers: responseJson.data.customers.edges.map(
         (edge: any) => edge.node,
       ),
+      message: "顧客データを取得しました。",
     });
   } catch (error: any) {
     console.error("Action Error:", error);
@@ -303,13 +307,16 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 };
 
 // - Component
-
 export default function Index() {
   const actionData = useActionData<ActionData>();
+  const navigation = useNavigation();
   const actionCustomers = actionData?.customers || [];
   const [selectedQuery, setSelectedQuery] = useState("");
-
   const [error, setError] = useState<string | null>(null);
+  const [isExporting, setIsExporting] = useState(false);
+
+  // ナビゲーション状態を監視してローディング状態を管理
+  const isLoading = navigation.state === "submitting";
 
   useEffect(() => {
     if (actionData?.error) {
@@ -361,16 +368,27 @@ export default function Index() {
     );
   });
 
-  const handleExportCSV = () => {
-    const selectedCustomers = actionCustomers.filter((customer: Customer) =>
-      selectedResources.includes(customer.id),
-    );
-    console.log(selectedCustomers);
-    _exportCustomerCSVData(selectedCustomers);
+  const handleExportCSV = async () => {
+    try {
+      setIsExporting(true);
+      const selectedCustomers = actionCustomers.filter((customer: Customer) =>
+        selectedResources.includes(customer.id),
+      );
+      await _exportCustomerCSVData(selectedCustomers);
+    } catch (error) {
+      setError("CSVエクスポート中にエラーが発生しました。");
+    } finally {
+      setIsExporting(false);
+    }
   };
+
+  const isExportDisabled = selectedResources.length === 0 || isExporting;
 
   return (
     <Page>
+      <Text as="h1" variant="headingLg">
+        顧客データCSV変換
+      </Text>
       <Layout.Section>
         <BlockStack gap="500">
           <Form method="post">
@@ -382,42 +400,63 @@ export default function Index() {
                   name="query"
                   value={selectedQuery}
                   onChange={setSelectedQuery}
+                  disabled={isLoading}
                 />
               </Card>
               <div>
                 <BlockStack gap="200">
-                  <Text as="p" alignment="start" tone="subdued">
-                    取得したい顧客のクエリを入力してください。
+                  <BlockStack gap="200">
+                    <Text as="h3" variant="headingSm">
+                      検索例:
+                    </Text>
+                    <Text as="p" variant="bodySm" tone="subdued">
+                      ・メールアドレス: "test@example.com"
+                    </Text>
+                    <Text as="p" variant="bodySm" tone="subdued">
+                      ・お名前: "山田 太郎"
+                    </Text>
+                    <Text as="p" variant="bodySm" tone="subdued">
+                      ・タグ: "HTシートマスクプレゼント対象者"
+                    </Text>
+                  </BlockStack>
+                  <Text as="p" variant="bodySm" tone="critical">
+                    <Text as="span" variant="bodySm" fontWeight="bold">
+                      検索クエリ
+                    </Text>
+                    はタグのみを参照している訳ではありません。顧客の持つデータからクエリの文字列を含む顧客を検索します。検索結果は250件までです。
                   </Text>
-                  <Text as="span" alignment="start" tone="caution">
-                    複数の顧客を取得する場合は、半角スペースで区切ってください。例:
-                    HT シートマスクプレゼント対象者
+                  <Text as="p" variant="bodySm" tone="subdued">
+                    指定の顧客のみに絞り込みたい場合は複数のクエリを入力して検索クエリを絞り込んでください。
                   </Text>
-                  <Button submit variant="primary">
-                    クエリで検索する
+                  <Button
+                    submit
+                    variant="primary"
+                    loading={isLoading}
+                    disabled={!selectedQuery.trim() || isLoading}
+                  >
+                    {isLoading ? "検索中..." : "クエリで検索する"}
                   </Button>
                 </BlockStack>
               </div>
             </BlockStack>
           </Form>
+
           {error && (
-            <Card>
-              <Text
-                variant="bodyMd"
-                fontWeight="bold"
-                as="span"
-                alignment="center"
-                tone="critical"
-              >
-                {error}
-              </Text>
-            </Card>
+            <Banner onDismiss={() => setError(null)}>
+              <p>{error}</p>
+            </Banner>
           )}
+
           <BlockStack gap="500">
             <Card>
               <BlockStack gap="200">
                 <Text as="h2" tone="base">
                   一致した顧客
+                  {isLoading && (
+                    <span style={{ marginLeft: "8px" }}>
+                      <Spinner size="small" />
+                    </span>
+                  )}
                 </Text>
                 <Card>
                   <IndexTable
@@ -437,6 +476,7 @@ export default function Index() {
                       { title: "住所1" },
                       { title: "詳細住所" },
                     ]}
+                    loading={isLoading}
                   >
                     {rowMarkup}
                   </IndexTable>
@@ -444,8 +484,20 @@ export default function Index() {
               </BlockStack>
             </Card>
           </BlockStack>
-          <Button onClick={handleExportCSV} variant="primary">
-            顧客データをCSVで出力する
+
+          <Button
+            onClick={handleExportCSV}
+            variant="primary"
+            loading={isExporting}
+            disabled={isExportDisabled}
+          >
+            {isExporting
+              ? "エクスポート中..."
+              : `顧客データをCSVで出力する ${
+                  selectedResources.length > 0
+                    ? `(${selectedResources.length}件選択中)`
+                    : ""
+                }`}
           </Button>
           <Text as="span" alignment="start" tone="subdued">
             ボタンを押すとCSVファイルがダウンロードされます。

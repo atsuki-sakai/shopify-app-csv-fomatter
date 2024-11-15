@@ -23,10 +23,19 @@ export default function App() {
     <AppProvider isEmbeddedApp apiKey={apiKey}>
       <NavMenu>
         <Link to="/app" rel="home">
-          注文データ
+          注文データCSV、Excel変換
         </Link>
         <Link to="/app/customer" rel="customer">
-          顧客データ
+          顧客データCSV変換
+        </Link>
+        <Link to="/app/update-customer-tag" rel="update-customer-tag">
+          顧客タグ変換
+        </Link>
+        <Link to="/app/add-customer-tag" rel="add-customer-tag">
+          顧客タグ追加
+        </Link>
+        <Link to="/app/delete-customer-tag" rel="delete-customer-tag">
+          顧客タグ削除
         </Link>
       </NavMenu>
       <Outlet />
