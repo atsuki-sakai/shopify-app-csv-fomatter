@@ -3,7 +3,7 @@
 client_id = "1606189b812acddeb628965c01e43be0"
 name = "csv-formatter"
 handle = "csv-formatter-2"
-application_url = "https://lang-thru-houston-joy.trycloudflare.com"
+application_url = "https://republicans-apt-funeral-thumb.trycloudflare.com"
 embedded = true
 
 [build]
@@ -17,9 +17,9 @@ scopes = "read_customers,read_orders,write_customers,write_orders,write_products
 
 [auth]
 redirect_urls = [
-  "https://lang-thru-houston-joy.trycloudflare.com/auth/callback",
-  "https://lang-thru-houston-joy.trycloudflare.com/auth/shopify/callback",
-  "https://lang-thru-houston-joy.trycloudflare.com/api/auth/callback"
+  "https://republicans-apt-funeral-thumb.trycloudflare.com/auth/callback",
+  "https://republicans-apt-funeral-thumb.trycloudflare.com/auth/shopify/callback",
+  "https://republicans-apt-funeral-thumb.trycloudflare.com/api/auth/callback"
 ]
 
 [webhooks]

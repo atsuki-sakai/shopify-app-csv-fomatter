@@ -34,7 +34,7 @@ interface Customer {
   email: string;
   lastName: string;
   firstName: string;
-  tags?: string[];
+  tags?: string;
   addresses: ShippingAddress[];
 }
 
@@ -173,7 +173,6 @@ function _exportCustomerCSVData(customers: Customer[]) {
   const csvData = [
     [
       "ID",
-      "タグ",
       "お名前",
       "メールアドレス",
       "電話番号",
@@ -185,7 +184,6 @@ function _exportCustomerCSVData(customers: Customer[]) {
     ],
     ...customers.map((customer: Customer) => [
       customer.id.split("/Customer/")[1],
-      customer.tags?.join(", ") || "",
       customer.lastName + customer.firstName,
       customer.email,
       customer.addresses?.[0]?.phone
@@ -345,7 +343,11 @@ export default function Index() {
           </Text>
         </IndexTable.Cell>
         <IndexTable.Cell>{customer.email}</IndexTable.Cell>
-        <IndexTable.Cell>{customer.tags?.join(", ") || "なし"}</IndexTable.Cell>
+        <IndexTable.Cell>
+          <Text variant="bodyMd" fontWeight="bold" as="span">
+            {customer.tags ?? ""}
+          </Text>
+        </IndexTable.Cell>
         <IndexTable.Cell>{address.zip ?? ""}</IndexTable.Cell>
         <IndexTable.Cell>
           <Text as="span" alignment="end" numeric>
