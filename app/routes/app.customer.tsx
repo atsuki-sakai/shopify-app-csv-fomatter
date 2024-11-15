@@ -352,6 +352,7 @@ export default function Index() {
           </Text>
         </IndexTable.Cell>
         <IndexTable.Cell>{customer.email}</IndexTable.Cell>
+        <IndexTable.Cell>{customer.tags ?? ""}</IndexTable.Cell>
         <IndexTable.Cell>{address.zip ?? ""}</IndexTable.Cell>
         <IndexTable.Cell>
           <Text as="span" alignment="end" numeric>
@@ -469,6 +470,7 @@ export default function Index() {
                     headings={[
                       { title: "お名前" },
                       { title: "メールアドレス" },
+                      { title: "タグ" },
                       { title: "郵便番号" },
                       { title: "電話番号" },
                       { title: "都道府県" },
