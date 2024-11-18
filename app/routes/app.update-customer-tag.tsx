@@ -129,18 +129,18 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
           const response = await admin.graphql(
             `#graphql
-          mutation updateCustomerTags($input: CustomerInput!) {
-            customerUpdate(input: $input) {
-              customer {
-                id
-                tags
+            mutation updateCustomerTags($input: CustomerInput!) {
+              customerUpdate(input: $input) {
+                customer {
+                  id
+                  tags
+                }
+                userErrors {
+                  field
+                  message
+                }
               }
-              userErrors {
-                field
-                message
-              }
-            }
-          }`,
+            }`,
             {
               variables: {
                 input: {

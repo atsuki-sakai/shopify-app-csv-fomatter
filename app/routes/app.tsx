@@ -37,6 +37,9 @@ export default function App() {
         <Link to="/app/delete-customer-tag" rel="delete-customer-tag">
           顧客タグ削除
         </Link>
+        <Link to="/app/b2b-affiliate" rel="b2b-affiliate">
+          B2Bアフィリエイト注文集計
+        </Link>
       </NavMenu>
       <Outlet />
     </AppProvider>
